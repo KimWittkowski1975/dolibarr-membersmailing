@@ -24,6 +24,7 @@
 
 include_once DOL_DOCUMENT_ROOT.'/core/modules/mailings/modules_mailings.php';
 include_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 
 
 /**
@@ -179,33 +180,49 @@ class mailing_membersextended extends MailingTargets
 		$s .= '<select id="filter_emailgroup_membersext" name="filter_emailgroup" class="flat">';
 		$s .= '<option value="">'.$langs->trans("EmailGroup").'</option>';
 
-		// Get distinct email-groups with count
-		$sql = "SELECT DISTINCT ae.emailgroup, COUNT(DISTINCT a.email) as nb";
+		// Load extrafield definition to get select options
+		$extrafields = new ExtraFields($this->db);
+		$extrafields->fetch_name_optionals_label('adherent');
+		
+		// Get emailgroup options from extrafield definition
+		$emailgroup_options = array();
+		if (!empty($extrafields->attributes['adherent']['param']['emailgroup']['options'])) {
+			$emailgroup_options = $extrafields->attributes['adherent']['param']['emailgroup']['options'];
+		}
+
+		// Get count for each option (by key)
+		$emailgroup_counts = array();
+		$sql = "SELECT ae.emailgroup, COUNT(DISTINCT a.email) as nb";
 		$sql .= " FROM ".MAIN_DB_PREFIX."adherent_extrafields ae";
 		$sql .= " INNER JOIN ".MAIN_DB_PREFIX."adherent a ON a.rowid = ae.fk_object";
 		$sql .= " WHERE ae.emailgroup IS NOT NULL AND ae.emailgroup != ''";
 		$sql .= " AND a.email IS NOT NULL AND a.email != ''";
 		$sql .= " AND a.entity IN (".getEntity('member').")";
 		$sql .= " GROUP BY ae.emailgroup";
-		$sql .= " ORDER BY ae.emailgroup";
 
 		$resql = $this->db->query($sql);
 		if ($resql) {
-			$num = $this->db->num_rows($resql);
-			$i = 0;
-			while ($i < $num) {
-				$obj = $this->db->fetch_object($resql);
-				$s .= '<option value="'.dol_escape_htmltag($obj->emailgroup).'">';
-				$s .= dol_escape_htmltag($obj->emailgroup).' ('.$obj->nb.')';
-				$s .= '</option>';
-				$i++;
+			while ($obj = $this->db->fetch_object($resql)) {
+				$emailgroup_counts[$obj->emailgroup] = $obj->nb;
 			}
-			if ($num == 0) {
-				$s .= '<option value="" disabled>'.$langs->trans("None").'</option>';
-			}
-		} else {
-			dol_print_error($this->db);
 		}
+
+		// Build dropdown with labels from extrafield options
+		if (!empty($emailgroup_options)) {
+			foreach ($emailgroup_options as $key => $label) {
+				$count = isset($emailgroup_counts[$key]) ? $emailgroup_counts[$key] : 0;
+				if ($count > 0) {
+					$s .= '<option value="'.dol_escape_htmltag($key).'">';
+					$s .= dol_escape_htmltag($label).' ('.$count.')';
+					$s .= '</option>';
+				}
+			}
+		}
+
+		if (empty($emailgroup_options) || empty($emailgroup_counts)) {
+			$s .= '<option value="" disabled>'.$langs->trans("None").'</option>';
+		}
+
 		$s .= '</select>';
 		$s .= ajax_combobox("filter_emailgroup_membersext");
 
@@ -248,6 +265,14 @@ class mailing_membersextended extends MailingTargets
 
 		$cibles = array();
 		$now = dol_now();
+
+		// Load extrafield options for label mapping
+		$extrafields = new ExtraFields($this->db);
+		$extrafields->fetch_name_optionals_label('adherent');
+		$emailgroup_options = array();
+		if (!empty($extrafields->attributes['adherent']['param']['emailgroup']['options'])) {
+			$emailgroup_options = $extrafields->attributes['adherent']['param']['emailgroup']['options'];
+		}
 
 		// Date filters
 		$dateendsubscriptionafter = dol_mktime(GETPOSTINT('subscriptionafterhour'), GETPOSTINT('subscriptionaftermin'), GETPOSTINT('subscriptionaftersec'), GETPOSTINT('subscriptionaftermonth'), GETPOSTINT('subscriptionafterday'), GETPOSTINT('subscriptionafteryear'));
@@ -325,6 +350,14 @@ class mailing_membersextended extends MailingTargets
 			while ($i < $num) {
 				$obj = $this->db->fetch_object($result);
 				if ($old != $obj->email) {
+					// Map emailgroup key to label
+					$emailgroup_label = '-';
+					if (!empty($obj->emailgroup) && isset($emailgroup_options[$obj->emailgroup])) {
+						$emailgroup_label = $emailgroup_options[$obj->emailgroup];
+					} elseif (!empty($obj->emailgroup)) {
+						$emailgroup_label = $obj->emailgroup; // Fallback to key if label not found
+					}
+
 					$cibles[$j] = array(
 						'email' => $obj->email,
 						'fk_contact' => (int) $obj->fk_contact,
@@ -335,7 +368,7 @@ class mailing_membersextended extends MailingTargets
 							($langs->transnoentities("UserTitle").'='.($obj->civility_id ? $langs->transnoentities("Civility".$obj->civility_id) : '')).';'.
 							($langs->transnoentities("DateEnd").'='.dol_print_date($this->db->jdate($obj->datefin), 'day')).';'.
 							($langs->transnoentities("Company").'='.$obj->societe).';'.
-							($langs->trans("EmailGroup").'='.($obj->emailgroup ? $obj->emailgroup : '-')),
+							($langs->trans("EmailGroup").'='.$emailgroup_label),
 						'source_url' => $this->url($obj->id),
 						'source_id' => (int) $obj->id,
 						'source_type' => 'member'
