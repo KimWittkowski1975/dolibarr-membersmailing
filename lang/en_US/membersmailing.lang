@@ -1,0 +1,27 @@
+# Copyright (C) 2026 Kim Wittkowski
+# This file is distributed under the same license as the Dolibarr package.
+
+#
+# Module
+#
+Module550070Name = Members Mailing Extended
+Module550070Desc = Enhanced member mailing selector with extrafield filters
+
+#
+# Setup
+#
+MembersMailingSetup = Members Mailing Extended - Setup
+MembersMailingSetupInfo = This module provides an extended mailing target selector for foundation members with additional filters for extrafields like email-group. The selector appears in the Mass Mailing tool under "Foundation Members (Extended)".
+
+#
+# Mailing Selector
+#
+EmailGroup = Email Group
+MembersExtended = Foundation Members (Extended)
+
+#
+# Admin
+#
+MembersMailingModule = Members Mailing Module
+Parameter = Parameter
+Value = Value
