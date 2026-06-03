@@ -124,12 +124,14 @@ class modMembersMailing extends DolibarrModules
 	{
 		global $conf, $langs;
 
+		$sql = array();
+
 		$result = $this->_load_tables('/membersmailing/sql/');
 		if ($result < 0) {
 			return -1;
 		}
 
-		return $this->_init($this->depends, $this->conflictwith, $options);
+		return $this->_init($sql, $options);
 	}
 
 	/**
@@ -142,6 +144,8 @@ class modMembersMailing extends DolibarrModules
 	 */
 	public function remove($options = '')
 	{
-		return $this->_remove($this->depends, $options);
+		$sql = array();
+
+		return $this->_remove($sql, $options);
 	}
 }
