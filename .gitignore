@@ -1,0 +1,14 @@
+# Dolibarr
+*.log
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+temp/
+tmp/
