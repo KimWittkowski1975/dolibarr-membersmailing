@@ -112,14 +112,7 @@ If not already present:
 2. Add new field: `emailgroup` (Type: Select/List)
 3. Add values (e.g., "Newsletter", "Events", "Partners")
 
----
 
-## 🛡️ Security
-
-- No Dolibarr core files modified (Sacred Rule #1)
-- Uses `GETPOST()` for input sanitization
-- SQL injection protection via `$db->escape()`
-- Permission checks via module dependencies
 
 ---
 
@@ -158,9 +151,6 @@ See [changelog.md](changelog.md) for version history.
 For issues or questions:
 - **Author:** Kim Wittkowski
 - **Email:** kim@wittkowski-it.de
-- **Website:** https://wittkowski-it.de
-
----
 
 ## 📄 License
 
