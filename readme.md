@@ -1,5 +1,10 @@
 # Members Mailing Extended - Module for Dolibarr
 
+![Dolibarr](https://img.shields.io/badge/Dolibarr-v21-blue)
+![Version](https://img.shields.io/badge/Version-1.0.0-orange)
+![License](https://img.shields.io/badge/License-GPL--3.0-green)
+![Status](https://img.shields.io/badge/Status-Production-success)
+
 **Version:** 1.0.0  
 **Dolibarr Version:** V21  
 **Modul-Numero:** 550070  
